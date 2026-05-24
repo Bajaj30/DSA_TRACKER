@@ -27,7 +27,9 @@ class Settings(BaseSettings):
         url = self.DATABASE_URL
         # Render uses 'postgres://' but SQLAlchemy needs 'postgresql://'
         if url.startswith("postgres://"):
-            url = url.replace("postgres://", "postgresql://", 1)
+            url = url.replace("postgres://", "postgresql+pg8000://", 1)
+        elif url.startswith("postgresql://") and "pg8000" not in url and "sqlite" not in url:
+            url = url.replace("postgresql://", "postgresql+pg8000://", 1)
         return url
 
     class Config:
