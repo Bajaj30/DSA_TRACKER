@@ -96,3 +96,31 @@ def update_daily_target(update: DailyTargetUpdate, db: Session = Depends(get_db)
         day_number=day_number,
         total_solved=len(solved_ids),
     )
+
+
+@router.post("/progress/reset")
+def reset_progress(db: Session = Depends(get_db)):
+    """Reset all progress: delete attempts, reset streak/day counter/phase."""
+    from models import ProblemAttempt
+    from datetime import date
+
+    # Delete all attempts
+    deleted_count = db.query(ProblemAttempt).delete()
+
+    # Reset user progress
+    progress = get_or_create_progress(db)
+    progress.start_date = date.today()
+    progress.current_streak = 0
+    progress.last_active_date = None
+    progress.current_phase = 1
+    progress.daily_target = 2
+
+    db.commit()
+
+    return {
+        "status": "reset_complete",
+        "attempts_deleted": deleted_count,
+        "start_date": str(date.today()),
+        "message": "All progress reset. Day 1, Phase 1, Streak 0."
+    }
+
